@@ -13,6 +13,7 @@ postulate putStrLn : String → IO ⊤
 
 postulate _++_ : String → String → String
 {-# COMPILE GHC _++_ = Text.append  #-}
+infixr 20 _++_
 
 record Pair (L R : Set) : Set where
   constructor _×_
@@ -35,7 +36,7 @@ showGreeting hello   = "Hello"
 showGreeting goodbye = "Goodbye,"
 
 showPair : String → Pair String String → String
-showPair delim (left × right) = left ++ (delim ++ right)
+showPair delim (left × right) = left ++ delim ++ right
 
 greet_ : Person → String
 greet (person name from _) = showPair " " ((showGreeting hello) × name)
