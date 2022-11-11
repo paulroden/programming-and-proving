@@ -78,3 +78,46 @@ check-dotProduct₃ : (2 ∷ 3 ∷ 4 ∷ []) ∙ (3 ∷ 3 ∷ 3 ∷ []) ≡ 27
 check-dotProduct₃ = refl
 
 ```
+
+
+## Finite bounded discrete numbers, `Fin`
+```
+data Fin : Nat → Set where
+  zero : {n : Nat} → Fin (succ n)
+  succ : {n : Nat} → Fin n → Fin (succ n)
+```
+But how about a function of `(n : Nat) → Nat → Fin n` to act as a 'constructor' for `Fin`s? (#TODO)
+
+Safe lookup on a `Vec`
+```
+lookupᵥ : {A : Set} {n : Nat} → Vec A n → Fin n → A
+lookupᵥ (x ∷ xs) zero     = x
+lookupᵥ (x ∷ xs) (succ i) = lookupᵥ xs i
+
+0₃ : Fin 3
+0₃ = zero
+
+2₃ : Fin 3
+2₃ = succ (succ zero)
+
+2₄ : Fin 4
+2₄ = succ (succ zero)
+
+lookupᵥ-check₃ : (lookupᵥ (4 ∷ 5 ∷ 6 ∷ []) 2₃) ≡ 6
+lookupᵥ-check₃ = refl
+
+-- #TODO: again, some kind of "this is not possible" proof here
+-- lookupᵥ-check₄ : (lookupᵥ (4 ∷ 5 ∷ 6 ∷ []) 2₄) ≡ 6
+-- lookupᵥ-check₄ = refl
+
+```
+
+### Exercise 2.4. Implement a function which sets a value at a particular position in the `Vec` and returns the `Vec` with that changed and all other elements as before.
+```
+putᵥ : {A : Set} {n : Nat} → Fin n → A → Vec A n → Vec A n
+putᵥ zero     x′ (x ∷ xs) = x′ ∷ xs
+putᵥ (succ n) x′ (x ∷ xs) = x  ∷ (putᵥ n x′ xs)
+
+check-putᵥ : putᵥ 2₄ 210 (10 ∷ 11 ∷ 12 ∷ 13 ∷ []) ≡ (10 ∷ 11 ∷ 210 ∷ 13 ∷ [])
+check-putᵥ = refl
+```
