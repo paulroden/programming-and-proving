@@ -18,6 +18,13 @@ _+_ : Nat → Nat → Nat
 zero     + m = m
 (succ n) + m = succ (n + m)
 ```
+... and (bounded) subtraction, which we'll need later (cf. 'monus' in PLFA)
+```
+_-_ : Nat → Nat → Nat
+n        - zero     = n
+zero     - (succ n) = zero
+(succ n) - (succ m) = n - m
+```
 
 ### Exercise 1.1: define the function `halve : Nat → Nat` that computes the result of diviging by two.
 ```
@@ -46,6 +53,7 @@ infix 3 ¬_
 
 data _≡_ {A : Set} (x : A) : A → Set where
   refl : x ≡ x
+infix 4 _≡_
 
 _≢_ : ∀ {A : Set} → A → A → Set
 x ≢ y = ¬ (x ≡ y)
