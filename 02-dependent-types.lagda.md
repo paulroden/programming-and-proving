@@ -48,7 +48,11 @@ check-head₂ = refl
 
 Self-aware length
 ```
+lengthᵥ : {A : Set} {n : Nat} → Vec A n → Nat
+lengthᵥ {_} {n} _ = n
 
+check-lengthᵥ : lengthᵥ (0 ∷ 0 ∷ 0 ∷ 0 ∷ []) ≡ 4
+check-lengthᵥ = refl
 ```
 
 ### Exercise 2.1. Implement the functon `downFrom : (n : Nat) → Vec Nat n` that produces the vector whuch 'counts down' from n.
@@ -121,3 +125,72 @@ putᵥ (succ n) x′ (x ∷ xs) = x  ∷ (putᵥ n x′ xs)
 check-putᵥ : putᵥ 2₄ 210 (10 ∷ 11 ∷ 12 ∷ 13 ∷ []) ≡ (10 ∷ 11 ∷ 210 ∷ 13 ∷ [])
 check-putᵥ = refl
 ```
+_figuring this out was fun! -- case-split on `Fin n` and there's only one sensible way to make it work ⌣_
+
+## Dependent pairs 🍎×🍐
+The sigma type: a dependent pair where the type of right/second member of the pair depends on the left/first:
+```
+data Σ (A : Set) (B : A → Set) : Set where
+  _,_ : (x : A) → B x → Σ A B
+
+_×′_ : (A B : Set) → Set
+A ×′ B = Σ A (λ _ → B)
+
+exlΣ : {A : Set} {B : A → Set} → Σ A B → A
+exlΣ (l , r) = l
+
+exrΣ : {A : Set} {B : A → Set} → (z : Σ A B) → B (exlΣ z)
+exrΣ (l , r) = r
+
+```
+
+
+Exercise 2.5. Implement functions converting back and forth between `A × B` and `A ×′ B`.
+```
+fromΣ : {A : Set} {B : A → Set} → (z : Σ A B) → (A × B (exlΣ z))
+fromΣ (l , r) = (l , r)
+
+toΣ : {A : Set} {B : A → Set} {a : A} → (A × B a) → Σ A B
+toΣ {A} {B} {a} (l , r) = l , {!!}
+-- #TODO?
+
+```
+
+
+For an example of a sigma type is a list with its length provided in its type:
+```
+List′ : (A : Set) → Set
+List′ A = Σ Nat (Vec A)
+-- note that the argument `A` _is_ a type here.
+
+listNil : {A : Set} → List′ A
+listNil = 0 , []
+
+list3 : {A : Set} → A → A → A → List′ A
+list3 a b c = 3 , (a ∷ b ∷ c ∷ [])
+
+```
+
+### Exercise 2.6. Implement functions converting back and forth between `List A` and `List′ A`.
+First define:
+```
+-- the 'sigma typed' empty list is a list parameterised by a length of zero
+[]′ : {A : Set} → List′ A
+[]′ = 0 , []
+
+-- appending to a 'sigma typed' list, indexed over some n ∈ ℕ, just means taking the successor of the index n
+_∷′_ : {A : Set} → A → List′ A → List′ A
+x ∷′ (n , xs) = succ n , x ∷ xs
+
+-- to a 'sigma typed' list
+toList′ : {A : Set} → List A → List′ A
+toList′ [] = []′
+toList′ (x ∷ xs) = x ∷′ toList′ xs
+
+-- from a 'sigma typed' list
+fromList′ : {A : Set} → List′ A → List A
+fromList′ (zero   , []      ) = []
+fromList′ (succ n , (x ∷ xs)) = x ∷ fromList′ (n , xs)
+```
+
+
