@@ -54,6 +54,9 @@ exl (l , r) = l
 
 exr : {A B : Set} → A × B → B
 exr (l , r) = r
+
+
+
 ```
 
 
@@ -69,6 +72,16 @@ cases (left  x) f g = f x
 cases (right x) f g = g x
 ```
 
+```
+curry : {A B C : Set} → ((A × B) → C) → A → B → C
+curry f x y = f (x , y)
+
+uncurry : {A B C : Set} → (A → B → C) → ((A × B) → C)
+uncurry f (x , y) = f x y
+
+```
+
+
 
 ### Exercise 3.2.
 ```
@@ -79,19 +92,22 @@ ifA = λ x _ → x
 -- 2. If (`A` and `true`) then (`A` or `false`).
 ifA-and : {A : Set} → (A × ⊤) → Either A ⊥
 ifA-and (l , r) = left l
--- TODO: check!
 
 -- 3. If `A` implies (`B` implies `C`), then (`A` and `B`) implies `C`.
-ifA⇒BC-then : {A B C : Set} → A → (B → C) → (A × B) → C
-ifA⇒BC-then = {!!}
-
+ifA⇒BC-then : {A B C : Set} → A → (B → C) → (A × (B → C)) -- (A × B) → C
+ifA⇒BC-then x f = x , (λ z → f z)
+-- this checks as a solution for " If `A` implies (`B` implies `C`), then
+-- (`A` and (`B` implies `C`).", which is not exactly what the specificaton
+-- was. Is this the correct interpretation of the exercise?
+-- #TODO: revisit,` ⋯ → (A × (B → C))` vs. `‌⋯ → (A × B) → C`
 
 -- 4. If A and (B or C), then either (A and B) or (A and C).
 ifA-and-BC-then : {A B C : Set} → (A × Either B C) → Either (A × B) (A × C)
-ifA-and-BC-then = {!!}
+ifA-and-BC-then (a , left  b|c) = left  (a , b|c)
+ifA-and-BC-then (a , right b|c) = right (a , b|c)
+
 
 -- 5. If `A` implies `C` and `B` implies `D`, then (`A` and `B`) implies (`C` and `D`).
 ifA⇒B-and-B⇒D-then : {A B C D : Set} → ((A → C) × (B → D)) → ((A × B) → (C × D))
-ifA⇒B-and-B⇒D-then = {!!}
-
+ifA⇒B-and-B⇒D-then (f , g) = λ x → ((λ y → f y) (exl x)), ((λ z → g z) (exr x))
 ```
