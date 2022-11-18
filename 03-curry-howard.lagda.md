@@ -111,3 +111,12 @@ ifA-and-BC-then (a , right b|c) = right (a , b|c)
 ifA⇒B-and-B⇒D-then : {A B C D : Set} → ((A → C) × (B → D)) → ((A × B) → (C × D))
 ifA⇒B-and-B⇒D-then (f , g) = λ x → ((λ y → f y) (exl x)), ((λ z → g z) (exr x))
 ```
+
+Exercise 3.3. Write a function of type `{P : Set} → (Either P (P → ⊥) → ⊥) → ⊥ `
+```
+classicalBottom : {P : Set} → (Either P (P → ⊥) → ⊥) → ⊥
+classicalBottom = λ x₁ → x₁ (right (λ x₀ → x₁ (left x₀)))
+-- #TODO: revisit -- how does this work; should it involve some ¬ (¬ x)?
+```
+
+
