@@ -150,10 +150,8 @@ Exercise 2.5. Implement functions converting back and forth between `A × B` and
 fromΣ : {A : Set} {B : A → Set} → (z : Σ A B) → (A × B (exlΣ z))
 fromΣ (l , r) = (l , r)
 
-toΣ : {A : Set} {B : A → Set} {a : A} → (A × B a) → Σ A B
-toΣ {A} {B} {a} (l , r) = l , {!!}
--- #TODO?
-
+toΣ : {A B : Set} → (A × B) → (A ×′ B)
+toΣ (l , r) = l , r
 ```
 
 
