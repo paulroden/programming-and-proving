@@ -186,3 +186,54 @@ _        =ℕ _        = false
 length-is-3 : IsTrue (length (1 ∷ 2 ∷ 3 ∷ []) =ℕ 3)
 length-is-3 = is-true
 ```
+
+Nice.
+How about proving that doubling any natural number will always result in an even number:
+```
+double_ : Nat → Nat
+double zero   = zero
+double succ n = succ (succ (double n))
+
+double-is-always-even : (n : Nat) → NatIsEven (double n)
+double-is-always-even zero     = even-zero
+double-is-always-even (succ n) = even-suc2 (double-is-always-even n)
+```
+(⇧ and that proof was completed entiredy with Agda's constraint solver, other than changing its default `x` to `n`!)
+
+
+Next, an inductive proof that for any natural number `n`, ` n =ℕ n` is true:
+```
+n-equals-n : (n : Nat) → IsTrue (n =ℕ n)
+n-equals-n zero     = is-true
+n-equals-n (succ n) = n-equals-n n
+```
+
+Now, given that an sigma-type corresponds to an existential statement (of the form of "there exists some ... such that ..."), we can construct proofs that certain statements hold.
+For example, that there exists some `n` such that `n + n = 12`, which is called half a dozen:
+```
+open import 01-intro-nat using (Nat; _+_)
+open import 02-dependent-types using (Σ; _,_)
+
+half-a-dozen : Σ Nat (λ n → IsTrue ((n + n) =ℕ 12))
+half-a-dozen = 6 , is-true
+```
+
+## The identity type
+Touched upon earlier, the identity type is constructed as
+```
+data _≡_ {A : Set} : A → A → Set where
+  refl : {a : A} → a ≡ a
+infix 4 _≡_
+```
+
+Thusly,
+```
+one-plus-one : 1 + 1 ≡ 2
+one-plus-one = refl
+
+zero-isnt-one : 1 ≡ 0 → ⊥
+zero-isnt-one ()
+```
+which is what everyone wanted to know!
+
+
