@@ -114,9 +114,75 @@ ifA⇒B-and-B⇒D-then (f , g) = λ x → ((λ y → f y) (exl x)), ((λ z → g
 
 Exercise 3.3. Write a function of type `{P : Set} → (Either P (P → ⊥) → ⊥) → ⊥ `
 ```
-classicalBottom : {P : Set} → (Either P (P → ⊥) → ⊥) → ⊥
-classicalBottom = λ x₁ → x₁ (right (λ x₀ → x₁ (left x₀)))
+classicalMiddle : {P : Set} → (Either P (P → ⊥) → ⊥) → ⊥
+classicalMiddle = λ x₁ → x₁ (right (λ x₀ → x₁ (left x₀)))
 -- #TODO: revisit -- how does this work; should it involve some ¬ (¬ x)?
+-- note that `{P : Set} → Either P (P → ⊥)` is the 'excluded middle' for P
+-- see: https://plfa.github.io/Negation/#excluded-middle-is-irrefutable
+```
+
+Aside on the "Excluded middle is irrefutable" section in PLFA (and the Agda StdLib) #TODO: revisit
+```
+open import Level using (Level; _⊔_)
+
+private
+  variable
+    a b c d : Level
+    A : Set a
+    B : Set b
+    C : Set c
+    D : Set d
+
+infixr 1 _⊎_
+
+data _⊎_ (A : Set a) (B : Set b) : Set (a ⊔ b) where
+  inj₁ : (x : A) → A ⊎ B
+  inj₂ : (y : B) → A ⊎ B
+  
+classicalMiddle′ : {P : Set} → ¬ ¬ (A ⊎ ¬ A)  -- ¬ ¬ (P × (¬ P)) → ⊥
+classicalMiddle′ = λ x₁ → x₁ (inj₂ (λ x₀ → x₁ (inj₁ x₀)))
 ```
 
 
+## Predicate Logic
+We can define a proposition expressing whether a natural number, `n` is even. Since propositions _are_ types, this propisition can be expressed as:
+```
+open import 01-intro-nat using (Nat; zero; succ)
+
+data NatIsEven : Nat → Set where
+  even-zero : NatIsEven zero
+  even-suc2 : {n : Nat} → NatIsEven n → NatIsEven (succ (succ n))
+```
+
+This lets us prove that, say, 6 is even:
+```
+6-is-even : NatIsEven 6
+6-is-even = even-suc2 (even-suc2 (even-suc2 even-zero))
+```
+and that there is not a proof that 7 is even (careful with the wording here, as we are not using classical logic!). The below _implies_ that this proposition is false.
+```
+7-is-even : NatIsEven 7 → ⊥
+7-is-even (even-suc2 (even-suc2 (even-suc2 ())))
+```
+
+It is useful to define a predicate to express that a predicate, which results in a `Bool` is true:
+```
+data IsTrue : Bool → Set where
+  is-true : IsTrue true
+```
+
+Applying this to the a plain (non-type-indexed) list as defined in the first chapter, it is possible to prove that its length is, well, what its length should be:
+```
+open import 01-intro-nat using (List; _∷_; []; length)
+
+
+_=ℕ_ : Nat → Nat → Bool
+zero     =ℕ zero     = true
+(succ n) =ℕ (succ m) = n =ℕ m
+{-# CATCHALL #-}
+_        =ℕ _        = false
+
+
+length-is-3 : IsTrue (length (1 ∷ 2 ∷ 3 ∷ []) =ℕ 3)
+length-is-3 = is-true
+```
