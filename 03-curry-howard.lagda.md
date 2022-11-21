@@ -236,4 +236,25 @@ zero-isnt-one ()
 ```
 which is what everyone wanted to know!
 
+Having introduced the identity type, with constructor `refl`, short for reflexifity, i.e. `∀ x. x ≡ x`, we follow with three other important properties for propositional equality:
+  1. symmetry of equality
+```
+sym : {A : Set} {x y : A} → x ≡ y → x ≡ y
+sym refl = refl
+```
+i.e. a `refl` works in both directons
+
+  2. transitivity of equality
+```
+trans : {A : Set} {x y z : A} → x ≡ y → y ≡ z → x ≡ z
+trans refl refl = refl
+```
+i.e. a `refl` of a `refl` gives a `refl`
+
+  3. congruency of equality
+```
+cong : {A B : Set} → {x y : A} → (f : A → B) → x ≡ y → f x ≡ f y
+cong f refl = refl
+```
+i.e. if x is y then functions of them, too, are equivelent, so as (cf. referential transparency, in CS speak)
 
