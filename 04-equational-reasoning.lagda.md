@@ -155,11 +155,11 @@ open import 01-intro-nat using (length)
 
 replicate-is-length-n : {A : Set} → (n : Nat) → (x : A)
                       → length (replicate n x) ≡ n
-replicate-is-length-n zero x =
+replicate-is-length-n {A} zero x =
   begin
     length (replicate zero x)
   =⟨⟩
-    length []
+    length {A} []   -- note a type needs to be provided here, otherwise the type is ambiguous
   =⟨⟩
     zero
   end
