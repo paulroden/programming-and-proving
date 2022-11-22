@@ -3,7 +3,7 @@
 This chapter looks to Graham Hutton's book _Programming in Haskell_ to use equational reasoning to prove properties of programing. Agda excels at this.
 To start with, we define some 'helper' operators which allow proof in Agda to follow a logical set of steps, similar to those with pen and paper.
 ```
-open import 03-curry-howard using (_≡_; refl; trans)
+open import 03-curry-howard using (_≡_; refl; sym; trans)
 
 begin_ : {A : Set} → {x y : A} → x ≡ y → x ≡ y
 begin p = p
@@ -173,4 +173,65 @@ replicate-is-length-n (succ n) x =
    =⟨ cong succ (replicate-is-length-n n x) ⟩
     succ n
   end
+```
+
+## Induction on lists
+Now for something more insightful: proving that `reverse` distributes over list concatenation (i.e. reversing a list comprised of two others is the same as reversing the two lists and 'flip' concatenating them), i.e.
+`
+  reverse (xs ++ ys) = reverse ys ++ reverse xs
+`
+
+First, we'll need to prove that reversing a reversed list yields the original list.
+```
+reverse-reverse : {A : Set} → (xs : List A) → reverse (reverse xs) ≡ xs
+reverse-reverse [] =
+  begin
+    reverse (reverse [])
+  =⟨⟩
+    reverse []
+  =⟨⟩
+    []
+   end
+reverse-reverse (x ∷ xs) = 
+  begin
+    reverse (reverse (x ∷ xs))
+  =⟨⟩
+    reverse (reverse xs ++ [ x ])
+  =⟨ reverse-distributivity (reverse xs) [ x ] ⟩
+    reverse [ x ] ++ reverse (reverse xs)
+  =⟨⟩
+   [ x ] ++ reverse (reverse xs)
+  =⟨ cong (x ∷_) (reverse-reverse xs) ⟩  -- NOTE: (x ::_) is curried _∷_ with the first argument applied
+    (x ∷ xs)
+  end
+  where
+    reverse-distributivity : {A : Set} → (xs ys : List A)
+                           → reverse (xs ++ ys) ≡ reverse ys ++ reverse xs
+    reverse-distributivity [] ys =
+      begin
+        reverse ([] ++ ys)
+      =⟨⟩
+        reverse ys
+      =⟨ sym (append-[] (reverse ys)) ⟩
+        reverse ys ++ []
+      =⟨⟩
+        reverse ys ++ reverse []
+      end
+      where
+        append-[] : {A : Set} → (xs : List A) → xs ++ [] ≡ xs
+        append-[] [] =
+          begin
+            [] ++ []
+          =⟨⟩
+            []
+          end
+        append-[] (x ∷ xs) =
+          begin
+            (x ∷ xs) ++ []
+          =⟨⟩
+            x ∷ (xs ++ [])
+          =⟨ cong (x ∷_) (append-[] xs) ⟩ 
+            x ∷ xs
+          end
+    reverse-distributivity (x ∷ xs) ys = {!!}
 ```
