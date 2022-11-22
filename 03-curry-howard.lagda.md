@@ -239,7 +239,7 @@ which is what everyone wanted to know!
 Having introduced the identity type, with constructor `refl`, short for reflexifity, i.e. `∀ x. x ≡ x`, we follow with three other important properties for propositional equality:
   1. symmetry of equality
 ```
-sym : {A : Set} {x y : A} → x ≡ y → x ≡ y
+sym : {A : Set} {x y : A} → x ≡ y → y ≡ x
 sym refl = refl
 ```
 i.e. a `refl` works in both directons
