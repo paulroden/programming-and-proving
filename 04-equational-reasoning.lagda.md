@@ -117,3 +117,60 @@ add-commute m (succ n) =
     (succ n) + m  -- we've swapped the order from (*) ⇒ it commutes and is shown by induction
   end
 ```
+
+Continuing on from commutativity, let's prove that addition over ℕ is associative, i.e. `l + (m + n) = (l + m) + n`:
+```
+add-assoc : (l m n : Nat) → l + (m + n) ≡ (l + m) + n
+add-assoc zero m n =
+  begin
+     zero + (m + n)
+   =⟨⟩
+     m + n
+   =⟨⟩
+     (zero + m) + n
+  end 
+add-assoc (succ l) m n =
+  begin
+    (succ l) + (m + n)
+  =⟨⟩
+    succ (l + (m + n))
+  =⟨ cong succ (add-assoc l m n) ⟩
+    succ ((l + m) + n)
+  =⟨⟩
+    (succ (l + m)) + n
+  =⟨⟩
+    (succ l + m) + n
+  end
+```
+
+### Exercise 4.2. Consider the following function:
+```
+replicate : {A : Set} → Nat → A → List A
+replicate zero     _ = []
+replicate (succ n) x = x ∷ replicate n x
+```
+Prove that the length of `replicate n x` is always equal to n, by induction on the number n.
+```
+open import 01-intro-nat using (length)
+
+replicate-is-length-n : {A : Set} → (n : Nat) → (x : A)
+                      → length (replicate n x) ≡ n
+replicate-is-length-n zero x =
+  begin
+    length (replicate zero x)
+  =⟨⟩
+    length []
+  =⟨⟩
+    zero
+  end
+replicate-is-length-n (succ n) x =
+  begin
+    length (replicate (succ n) x)
+   =⟨⟩
+    length (x ∷ replicate n x)
+   =⟨⟩
+    succ (length (replicate n x))
+   =⟨ cong succ (replicate-is-length-n n x) ⟩
+    succ n
+  end
+```
