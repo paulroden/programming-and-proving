@@ -181,6 +181,31 @@ Towards this, we'll need to provide auxilliary lemmas, proving that  distributes
 `
   reverse (xs ++ ys) = reverse ys ++ reverse xs
 `
+(for this proof, and some subsequent proofs, the lemma showing associativity of the append function `_++_` will be needed, so is extracted here, rather than sitting in a `where`-clause)
+```
+append-assoc : {A : Set} → (xs ys zs : List A)
+                     → (xs ++ ys) ++ zs ≡ xs ++ (ys ++ zs)
+append-assoc [] ys zs =
+  begin
+    ([] ++ ys) ++ zs
+  =⟨⟩
+    ys ++ zs
+  =⟨⟩
+    [] ++ (ys ++ zs)
+  end
+append-assoc (x ∷ xs) ys zs =
+  begin
+    ((x ∷ xs) ++ ys) ++ zs
+  =⟨⟩
+    (x ∷ (xs ++ ys)) ++ zs
+  =⟨⟩
+    x ∷ ((xs ++ ys) ++ zs)
+  =⟨ cong (x ∷_) (append-assoc xs ys zs) ⟩
+    x ∷ (xs ++ (ys ++ zs))
+  =⟨⟩
+    (x ∷ xs) ++ (ys ++ zs)
+  end
+```
 
 ```
 reverse-reverse : {A : Set} → (xs : List A) → reverse (reverse xs) ≡ xs
@@ -249,29 +274,6 @@ reverse-reverse (x ∷ xs) =
       =⟨⟩
         reverse ys ++ reverse (x ∷ xs)
       end
-      where
-        append-assoc : {A : Set} → (xs ys zs : List A)
-                     → (xs ++ ys) ++ zs ≡ xs ++ (ys ++ zs)
-        append-assoc [] ys zs =
-          begin
-            ([] ++ ys) ++ zs
-          =⟨⟩
-            ys ++ zs
-          =⟨⟩
-            [] ++ (ys ++ zs)
-          end
-        append-assoc (x ∷ xs) ys zs =
-          begin
-            ((x ∷ xs) ++ ys) ++ zs
-          =⟨⟩
-            (x ∷ (xs ++ ys)) ++ zs
-          =⟨⟩
-            x ∷ ((xs ++ ys) ++ zs)
-          =⟨ cong (x ∷_) (append-assoc xs ys zs) ⟩
-            x ∷ (xs ++ (ys ++ zs))
-          =⟨⟩
-            (x ∷ xs) ++ (ys ++ zs)
-          end
 ```
 ### Exercise 4.3. Proofs of `append-[]` and `append-assoc` above.
 
@@ -400,3 +402,138 @@ take-drop (succ n) (x ∷ xs) =
     x ∷ xs
   end
 ```
+
+## Verifying Optimizations
+It is widely known [TODO: link] that a naïve implementation of `reverse` using the plain concatenation function (`_++_` above) is inefficient since it needs to traverse the whole list, applying `_++_` each time. More efficient is to use a helper function with an accumulator storing the intermediate list, mid-reversal. In Agda, this can be achieved with:
+```
+-- helper function, which accumulates the results of reversing in `acc`
+reverse-acc : {A : Set} → List A → List A → List A
+reverse-acc []       acc = acc
+reverse-acc (x ∷ xs) acc = reverse-acc xs (x ∷ acc)
+
+-- `reverse` but with the accumulator helper function
+reverse′ : {A : Set} → List A → List A
+reverse′ xs = reverse-acc xs []
+```
+
+Now, let us show that the implementation of `reverse′` is _equivalent_ to the original `reverse`.
+There are two auxilliary lemmas needed here: `append-[]` and `append-assoc`. `append-assoc` has been extracted from a `where`-clause in `reverse-reverse` above; meanwhile, let's demonstrate the use of a `postulate` clause in Agda to supply `append-[]` to take this lemma as 'granted':
+```
+postulate
+  append-[] : {A : Set} → (xs : List A) → xs ++ [] ≡ xs
+```
+
+```
+reverse′-reverse : {A : Set} → (xs : List A) → reverse′ xs ≡ reverse xs
+reverse′-reverse xs =
+  begin
+    reverse′ xs
+  =⟨⟩
+    reverse-acc xs []
+  =⟨ reverse-acc-lemma xs [] ⟩
+    reverse xs ++ []
+  =⟨ append-[] (reverse xs) ⟩
+    reverse xs
+  end
+  where
+    reverse-acc-lemma : {A : Set} → (xs ys : List A)
+                      → reverse-acc xs ys ≡ reverse xs ++ ys
+    reverse-acc-lemma [] ys =
+      begin
+        reverse-acc [] ys
+      =⟨⟩
+        ys
+      =⟨⟩
+        [] ++  ys
+      =⟨⟩
+        reverse [] ++ ys
+      end
+    reverse-acc-lemma (x ∷ xs) ys =
+      begin
+        reverse-acc (x ∷ xs) ys
+      =⟨⟩
+        reverse-acc xs (x ∷ ys)
+      =⟨ reverse-acc-lemma xs (x ∷ ys) ⟩  -- via induction
+        reverse xs ++ (x ∷ ys)
+      =⟨⟩
+        reverse xs ++ ([ x ] ++ ys)
+      =⟨ sym (append-assoc (reverse xs) [ x ] ys) ⟩
+        (reverse xs ++ [ x ]) ++ ys
+      =⟨⟩
+        reverse (x ∷ xs) ++ ys
+      end
+```
+
+Following this proof on reversing lists, we can expand this to tree structures.
+First, let us define a binary tree (Tree₂) in Agda:
+```
+data Tree₂ (A : Set) : Set where
+  leaf : A → Tree₂ A
+  node : Tree₂ A → Tree₂ A → Tree₂ A
+```
+
+Now, if we wish to flatten the tree to a list, we might use this more naïve function:
+```
+flatten : {A : Set} → Tree₂ A → List A
+flatten (leaf l)     = [ l ]
+flatten (node n₁ n₂) = flatten n₁ ++ flatten n₂
+```
+or, we may use a more efficient one with an accumulator (similar to `reverse′`)
+```
+flatten-acc : {A : Set} → Tree₂ A → List A → List A
+flatten-acc (leaf l)     acc = l ∷ acc 
+flatten-acc (node n₁ n₂) acc = flatten-acc n₁ (flatten-acc n₂ acc)
+
+flatten′ : {A : Set} → Tree₂ A → List A
+flatten′ t = flatten-acc t []
+```
+
+Let's prove the two implementations above, `flatten` and `flatten′` are indeed equivalent.
+First, we want to show that applying `flatten-acc` to `t xs` is equivalent to appending xs to `flatten t`:
+```
+flatten-acc-flatten : {A : Set} (t : Tree₂ A) (xs : List A)
+                    → flatten-acc t xs ≡ flatten t ++ xs
+flatten-acc-flatten (leaf x) xs =
+  begin
+    flatten-acc (leaf x) xs
+  =⟨⟩
+    x ∷ xs
+  =⟨⟩
+    [ x ] ++ xs
+  =⟨⟩
+    flatten (leaf x) ++ xs
+  end
+flatten-acc-flatten (node n₁ n₂) xs =
+  begin
+    flatten-acc (node n₁ n₂) xs
+  =⟨⟩
+    flatten-acc n₁ (flatten-acc n₂ xs)
+  =⟨ flatten-acc-flatten n₁ (flatten-acc n₂ xs) ⟩  -- induction on n₁
+    flatten n₁ ++ (flatten-acc n₂ xs)
+  =⟨ cong (flatten n₁ ++_) (flatten-acc-flatten n₂ xs) ⟩
+    flatten n₁ ++ (flatten n₂ ++ xs)
+  =⟨ sym (append-assoc (flatten n₁) (flatten n₂) xs) ⟩
+    flatten (node n₁ n₂) ++ xs
+  end
+```
+Now we can continue to prove the equivalence of `flatten` and `flatten′`:
+```
+flatten′-flatten : {A : Set} → (t : Tree₂ A)
+                 → flatten′ t ≡ flatten t
+flatten′-flatten t =
+  begin
+    flatten′ t
+  =⟨⟩
+    flatten-acc t []
+  =⟨ flatten-acc-flatten t [] ⟩
+    flatten t ++ []
+  =⟨ append-[] (flatten t) ⟩
+    flatten t
+  end
+```
+Exercise 4.6. `flatten′-flatten` completed above 🎉.
+
+
+
+
+
