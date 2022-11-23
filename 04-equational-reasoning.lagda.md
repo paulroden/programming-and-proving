@@ -334,7 +334,30 @@ map-compose f g (x ∷ xs) =
   =⟨⟩
     map f (map g (x ∷ xs))
   end
+```
 
+### Exercise 4.4. Prove that `length (map f xs) is equal to `length xs` for all `xs`.
+```
+map-length : {A B : Set} → (f : A → B) (xs : List A)
+           → length (map f xs) ≡ length xs
+map-length {A} f [] =
+  begin
+    length (map f [])
+  =⟨⟩
+    length {A} []
+  end
+map-length f (x ∷ xs) =
+   begin
+     length (map f (x ∷ xs))
+   =⟨⟩
+     length (f x ∷ (map f xs))
+   =⟨⟩
+     succ (length (map f xs))
+   =⟨ cong succ (map-length f xs) ⟩
+    succ (length xs)
+   =⟨⟩
+     length (x ∷ xs)
+   end
 ```
 
 
