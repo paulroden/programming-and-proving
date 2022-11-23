@@ -176,12 +176,12 @@ replicate-is-length-n (succ n) x =
 ```
 
 ## Induction on lists
-Now for something more insightful: proving that `reverse` distributes over list concatenation (i.e. reversing a list comprised of two others is the same as reversing the two lists and 'flip' concatenating them), i.e.
+Now for something more insightful: proving that `reverse`ing a list twice yields the same list.
+Towards this, we'll need to provide auxilliary lemmas, proving that  distributes over list concatenation (i.e. reversing a list comprised of two others is the same as reversing the two lists and 'flip' concatenating them), i.e.
 `
   reverse (xs ++ ys) = reverse ys ++ reverse xs
 `
 
-First, we'll need to prove that reversing a reversed list yields the original list.
 ```
 reverse-reverse : {A : Set} → (xs : List A) → reverse (reverse xs) ≡ xs
 reverse-reverse [] =
@@ -235,3 +235,6 @@ reverse-reverse (x ∷ xs) =
           end
     reverse-distributivity (x ∷ xs) ys = {!!}
 ```
+### Exercise 4.3. Proofs of `append-[]` and `append-assoc` above.
+
+
