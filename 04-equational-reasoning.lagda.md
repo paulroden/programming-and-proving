@@ -201,7 +201,7 @@ reverse-reverse (x ∷ xs) =
     reverse [ x ] ++ reverse (reverse xs)
   =⟨⟩
    [ x ] ++ reverse (reverse xs)
-  =⟨ cong (x ∷_) (reverse-reverse xs) ⟩  -- NOTE: (x ::_) is curried _∷_ with the first argument applied
+  =⟨ cong (x ∷_) (reverse-reverse xs) ⟩  -- NOTE: (x ::_) is curried _∷_ with the first argument applied, a.k.a 'section syntax`: `λ xs → x ∷ xs`
     (x ∷ xs)
   end
   where
@@ -233,8 +233,85 @@ reverse-reverse (x ∷ xs) =
           =⟨ cong (x ∷_) (append-[] xs) ⟩ 
             x ∷ xs
           end
-    reverse-distributivity (x ∷ xs) ys = {!!}
+    reverse-distributivity (x ∷ xs) ys =
+      begin
+        reverse ((x ∷ xs) ++ ys)
+      =⟨⟩
+        reverse (x ∷ (xs ++ ys))
+      =⟨⟩
+        reverse (xs ++ ys) ++ reverse [ x ]
+      =⟨⟩
+        reverse (xs ++ ys) ++ [ x ]
+      =⟨ cong (_++ [ x ]) (reverse-distributivity xs ys) ⟩
+        (reverse ys ++ reverse xs) ++ [ x ]
+      =⟨ append-assoc (reverse ys) (reverse xs) [ x ] ⟩
+        reverse ys ++ (reverse xs ++ [ x ]) 
+      =⟨⟩
+        reverse ys ++ reverse (x ∷ xs)
+      end
+      where
+        append-assoc : {A : Set} → (xs ys zs : List A)
+                     → (xs ++ ys) ++ zs ≡ xs ++ (ys ++ zs)
+        append-assoc [] ys zs =
+          begin
+            ([] ++ ys) ++ zs
+          =⟨⟩
+            ys ++ zs
+          =⟨⟩
+            [] ++ (ys ++ zs)
+          end
+        append-assoc (x ∷ xs) ys zs =
+          begin
+            ((x ∷ xs) ++ ys) ++ zs
+          =⟨⟩
+            (x ∷ (xs ++ ys)) ++ zs
+          =⟨⟩
+            x ∷ ((xs ++ ys) ++ zs)
+          =⟨ cong (x ∷_) (append-assoc xs ys zs) ⟩
+            x ∷ (xs ++ (ys ++ zs))
+          =⟨⟩
+            (x ∷ xs) ++ (ys ++ zs)
+          end
 ```
 ### Exercise 4.3. Proofs of `append-[]` and `append-assoc` above.
+
+
+## Proving the functor laws for `map`.
+The functor laws, for some functor `f`, comprise:
+  Identity: `f id = id`
+  Composition: `f (g ∘ h) = f g ∘ f g`
+
+Let us prove these for `f` as `map` on `List`s.
+```
+open import 01-intro-nat using (id; map)
+
+-- Identity Law
+map-id : {A : Set} (xs : List A) → map id xs ≡ xs
+map-id [] =
+  begin
+    map id []
+  =⟨⟩
+    []
+  end
+map-id (x ∷ xs) =
+  begin
+    map id (x ∷ xs)
+  =⟨⟩
+    id x ∷ map id xs
+  =⟨⟩
+    x ∷ map id xs
+  =⟨ cong (x ∷_) (map-id xs) ⟩  -- by induction; using 'section syntax'
+    x ∷ xs
+  end
+
+-- Composition Law
+_∘_ : {A B C : Set} → (B → C) → (A → B) → (A → C)
+g ∘ h = λ x → g (h x)
+
+map-compose : {A B C : Set} → (f : B → C) (g : A → B) (xs : List A)
+            → map (f ∘ g) xs ≡ map f (map g xs)
+map-compose x = {!!}
+
+```
 
 
