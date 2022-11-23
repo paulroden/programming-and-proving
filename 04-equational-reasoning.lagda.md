@@ -360,4 +360,51 @@ map-length f (x ∷ xs) =
    end
 ```
 
+### Exercise 4.5 Define the functions `take` and `drop` that respectively return or re- move the first `n` elements of the list (or all elements if the list is shorter). Prove that for any number n and any list xs, we have `take n xs ++ drop n xs = xs`.
+```
+take : {A : Set} → Nat → List A → List A
+take zero     _        = []
+{-# CATCHALL #-}
+take _        []       = []
+take (succ n) (x ∷ xs) = x ∷ take n xs
 
+drop : {A : Set} → Nat → List A → List A
+drop zero     xs       = xs
+drop (succ n) []       = []
+drop (succ n) (x ∷ xs) = drop n xs
+
+take-drop : {A : Set} (n : Nat) (xs : List A)
+         → take n xs ++ drop n xs ≡ xs
+take-drop zero [] =
+  begin
+    take zero [] ++ drop zero []
+  =⟨⟩
+    [] ++ []
+  =⟨⟩
+    []
+  end
+take-drop zero xs =
+  begin
+    take zero xs ++ drop zero xs
+  =⟨⟩
+    [] ++ xs
+  =⟨⟩
+    xs
+  end
+take-drop (succ n) [] =
+  begin
+    take (succ n) [] ++ drop (succ n) []
+  =⟨⟩
+    [] ++ []
+  =⟨⟩
+    []
+  end
+take-drop (succ n) (x ∷ xs) =
+  begin
+    take (succ n) (x ∷ xs) ++ drop (succ n) (x ∷ xs)
+  =⟨⟩
+    (x ∷ (take n xs)) ++ (drop n xs)
+  =⟨ cong (x ∷_) (take-drop n xs) ⟩
+    x ∷ xs
+  end
+```
