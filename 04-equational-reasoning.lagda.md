@@ -375,14 +375,6 @@ drop (succ n) (x ∷ xs) = drop n xs
 
 take-drop : {A : Set} (n : Nat) (xs : List A)
          → take n xs ++ drop n xs ≡ xs
-take-drop zero [] =
-  begin
-    take zero [] ++ drop zero []
-  =⟨⟩
-    [] ++ []
-  =⟨⟩
-    []
-  end
 take-drop zero xs =
   begin
     take zero xs ++ drop zero xs
