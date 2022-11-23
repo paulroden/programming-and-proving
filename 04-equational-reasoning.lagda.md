@@ -310,7 +310,30 @@ g ∘ h = λ x → g (h x)
 
 map-compose : {A B C : Set} → (f : B → C) (g : A → B) (xs : List A)
             → map (f ∘ g) xs ≡ map f (map g xs)
-map-compose x = {!!}
+map-compose f g [] =
+  begin
+    map (f ∘ g) []
+  =⟨⟩
+    []
+  =⟨⟩
+    map f []
+  =⟨⟩
+    map f (map g [])
+  end
+map-compose f g (x ∷ xs) =
+  begin
+    map (f ∘ g) (x ∷ xs)
+  =⟨⟩
+    (f ∘ g) x ∷ map (f ∘ g) xs
+  =⟨⟩
+    f (g x) ∷ map (f ∘ g) xs
+  =⟨ cong (f (g x) ∷_) (map-compose f g xs) ⟩
+    f (g x) ∷ map f (map g xs)
+  =⟨⟩
+    map f (g x ∷ map g xs)
+  =⟨⟩
+    map f (map g (x ∷ xs))
+  end
 
 ```
 
