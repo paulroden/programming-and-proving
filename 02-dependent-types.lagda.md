@@ -41,9 +41,9 @@ head (x ∷ xs) = x
 check-head₂ : head (1 ∷ 2 ∷ 3 ∷ 4 ∷ []) ≡ 1
 check-head₂ = refl
 
--- #TODO: is there a way to construct a proof that a type cannot be inhabited?
--- check-head₀ : head []
--- check-head₀ ()
+-- The head of and empty list is impossible! This cannot typecheck.
+check-head₀ : head [] → ⊥
+check-head₀ ()
 ```
 
 Self-aware length
@@ -90,7 +90,6 @@ data Fin : Nat → Set where
   zero : {n : Nat} → Fin (succ n)
   succ : {n : Nat} → Fin n → Fin (succ n)
 ```
-But how about a function of `(n : Nat) → Nat → Fin n` to act as a 'constructor' for `Fin`s? (#TODO)
 
 Safe lookup on a `Vec`
 ```
@@ -104,16 +103,18 @@ lookupᵥ (x ∷ xs) (succ i) = lookupᵥ xs i
 2₃ : Fin 3
 2₃ = succ (succ zero)
 
-2₄ : Fin 4
-2₄ = succ (succ zero)
-
 lookupᵥ-check₃ : (lookupᵥ (4 ∷ 5 ∷ 6 ∷ []) 2₃) ≡ 6
 lookupᵥ-check₃ = refl
 
--- #TODO: again, some kind of "this is not possible" proof here
--- lookupᵥ-check₄ : (lookupᵥ (4 ∷ 5 ∷ 6 ∷ []) 2₄) ≡ 6
--- lookupᵥ-check₄ = refl
+2₄ : Fin 4
+2₄ = succ (succ zero)
 
+3₄ : Fin 4
+3₄ = succ (succ (succ zero))
+
+-- this does not typecheck; Agda complains that we are using a `Fin 4`, not a `Fin 3` for the lookup
+lookupᵥ-check₄ : ((lookupᵥ (4 ∷ 5 ∷ 6 ∷ []) 2₄) ≡ 6) → ⊥
+lookupᵥ-check₄ ()
 ```
 
 ### Exercise 2.4. Implement a function which sets a value at a particular position in the `Vec` and returns the `Vec` with that changed and all other elements as before.
@@ -190,5 +191,3 @@ fromList′ : {A : Set} → List′ A → List A
 fromList′ (zero   , []      ) = []
 fromList′ (succ n , (x ∷ xs)) = x ∷ fromList′ (n , xs)
 ```
-
-
