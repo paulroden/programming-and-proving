@@ -534,6 +534,102 @@ flatten′-flatten t =
 Exercise 4.6. `flatten′-flatten` completed above 🎉.
 
 
+## Compiler Correctness
+Following the example from Section 16.7 of _Programming in Haskell_, which discussed the implementation of a simple compiler for the following grammar:
+```
+data Expr : Set where
+  valExpr : Nat → Expr
+  addExpr : Expr → Expr → Expr
+```
 
+These can be evaluated via the following functions, continually applied to a stack. Simplistically, this is how an interpreter works.
+```
+eval : Expr → Nat
+eval (valExpr v)     = v
+eval (addExpr e₁ e₂) = eval e₁ + eval e₂ 
+```
+We then define a stack, comprised of `Nat` values,'code' which lists operations on the stack, and a function by which to execute these operations (quite 'mechanically'):
+```
+data Op : Set where
+  PUSH : Nat → Op
+  ADD  : Op
+  
+Stack = List Nat
+Code = List Op
 
+exec : Code → Stack → Stack
+exec []           s           = s
+exec (PUSH x ∷ c) s           = exec c (x ∷ s)
+exec (ADD ∷ c)    (m ∷ n ∷ s) = exec c (n + m ∷ s)
+{-# CATCHALL #-}
+exec (ADD ∷ c)    _           = []
+```
+
+Instead of executing code through the `eval` function (as an interpreter), we may wish to compile code. Of course, we really should ensure that executing compiled code is equivalent to . In Agda, we can do just that: `exec (compile′ e c) s ≡ exec c (eval e ∷ s)`.
+
+Let's first implement a `compile` function. A naïve approach is below, which would be inefficient and difficult to reason about (which is anathema for writing a proof!).
+```
+compile😖 : Expr → Code
+compile😖 (valExpr v)     = (PUSH v) ∷ []
+compile😖 (addExpr e₁ e₂) = ((compile😖 e₁) ++ (compile😖 e₂)) ++ [ ADD ] 
+```
+
+A more efficient, and easier to reason with version of this is below, which is similar to the `reverse′` with accumulator approach for lists:
+```
+compile′ : Expr → Code → Code
+compile′ (valExpr v)     c = PUSH v ∷ c
+compile′ (addExpr e₁ e₂) c = compile′ e₁ (compile′ e₂ (ADD ∷ c))
+
+compile : Expr → Code
+compile e = compile′ e []
+```
+
+Now, let's show that executing compiled code is equivalent to executing it by evaluation.
+First we construct a lemma that `exec compile` is equivalent to `exec eval`.
+```
+compile′-exec-eval : (e : Expr)  (s : Stack)  (c : Code)
+                   → exec (compile′ e c) s ≡ exec c (eval e ∷ s)
+compile′-exec-eval (valExpr v) s c =
+  begin
+    exec (compile′ (valExpr v) c) s
+  =⟨⟩
+    exec (PUSH v ∷ c) s
+  =⟨⟩
+    exec c (v ∷ s)
+  =⟨⟩  -- unapply eval for valExpr
+    exec c (eval (valExpr v) ∷ s)
+  end
+compile′-exec-eval (addExpr e₁ e₂) s c =
+  begin
+    exec (compile′ (addExpr e₁ e₂) c) s
+  =⟨⟩
+    exec (compile′ e₁ (compile′ e₂ (ADD ∷ c))) s
+  =⟨ compile′-exec-eval e₁ s (compile′ e₂ (ADD ∷ c)) ⟩   -- induction on e₁
+    exec (compile′ e₂ (ADD ∷ c)) (eval e₁ ∷ s)
+  =⟨ compile′-exec-eval e₂ (eval e₁ ∷ s) (ADD ∷ c) ⟩   -- induction on e₂
+    exec (ADD ∷ c) (eval e₂ ∷ eval e₁ ∷ s)
+  =⟨⟩
+    exec c (eval e₁ + eval e₂ ∷ s)
+  =⟨⟩
+    exec c (eval (addExpr e₁ e₂) ∷ s) 
+  end
+
+```
+Now we can apply this lemma to show that executing compiled code is equivalent to evaluating the same list of expressions.
+```
+compile-exec-eval : (e : Expr)
+                  → exec (compile e) [] ≡ [ eval e ]
+compile-exec-eval e =
+  begin
+    exec (compile e) []
+  =⟨ compile′-exec-eval e [] [] ⟩
+    exec [] (eval e ∷ [])
+  =⟨⟩
+    eval e ∷ []
+  =⟨⟩
+    [ eval e ]  
+  end
+```
+
+∎
 
