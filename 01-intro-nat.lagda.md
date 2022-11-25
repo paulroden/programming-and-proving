@@ -26,7 +26,7 @@ zero     - (succ n) = zero
 (succ n) - (succ m) = n - m
 ```
 
-### Exercise 1.1: define the function `halve : Nat → Nat` that computes the result of diviging by two.
+### Exercise 1.1: define the function `halve : Nat → Nat` that computes the result of dividing by two.
 ```
 halve : Nat → Nat
 halve zero                   = zero

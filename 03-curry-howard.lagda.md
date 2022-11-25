@@ -97,7 +97,7 @@ ifA-and (l , r) = left l
 ifA⇒BC-then : {A B C : Set} → A → (B → C) → (A × (B → C)) -- (A × B) → C
 ifA⇒BC-then x f = x , (λ z → f z)
 -- this checks as a solution for " If `A` implies (`B` implies `C`), then
--- (`A` and (`B` implies `C`).", which is not exactly what the specificaton
+-- (`A` and (`B` implies `C`).", which is not exactly what the specification
 -- was. Is this the correct interpretation of the exercise?
 -- #TODO: revisit,` ⋯ → (A × (B → C))` vs. `‌⋯ → (A × B) → C`
 
@@ -242,7 +242,7 @@ Having introduced the identity type, with constructor `refl`, short for reflexif
 sym : {A : Set} {x y : A} → x ≡ y → y ≡ x
 sym refl = refl
 ```
-i.e. a `refl` works in both directons
+i.e. a `refl` works in both directions
 
   2. transitivity of equality
 ```
@@ -258,3 +258,5 @@ cong f refl = refl
 ```
 i.e. if x is y then functions of them, too, are equivelent, so as (cf. referential transparency, in CS speak)
 
+
+--  LocalWords:  quodlibet
