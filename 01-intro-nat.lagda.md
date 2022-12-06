@@ -29,9 +29,9 @@ zero     - (succ n) = zero
 ### Exercise 1.1: define the function `halve : Nat → Nat` that computes the result of dividing by two.
 ```
 halve : Nat → Nat
-halve zero                   = zero
-halve (succ zero)            = zero
-halve (succ (succ n))        = succ (halve n)
+halve zero            = zero
+halve (succ zero)     = zero
+halve (succ (succ n)) = succ (halve n)
 ```
 
 Let's try a few tests, using more convenient notation…
