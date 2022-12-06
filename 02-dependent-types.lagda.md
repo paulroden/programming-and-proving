@@ -41,9 +41,11 @@ head (x ∷ xs) = x
 check-head₂ : head (1 ∷ 2 ∷ 3 ∷ 4 ∷ []) ≡ 1
 check-head₂ = refl
 
--- The head of and empty list is impossible! This cannot typecheck.
-check-head₀ : head [] → ⊥
-check-head₀ ()
+-- The head of and empty list is impossible! 
+-- Hence, the below is commented out as a reminder that intuitionistic logic we
+-- cannot form a proof without evidence, hence, no type can inhabit this:
+--- check-head₀ : head [] → ⊥
+--- check-head₀ ()
 ```
 
 Self-aware length
@@ -112,9 +114,13 @@ lookupᵥ-check₃ = refl
 3₄ : Fin 4
 3₄ = succ (succ (succ zero))
 
--- this does not typecheck; Agda complains that we are using a `Fin 4`, not a `Fin 3` for the lookup
-lookupᵥ-check₄ : ((lookupᵥ (4 ∷ 5 ∷ 6 ∷ []) 2₄) ≡ 6) → ⊥
-lookupᵥ-check₄ ()
+-- Similar to attempting to get the head of an empty list,
+-- it is not possible to access elements of a list which do not exist.
+-- Below is a 3-element list, with a lookup at an index greater than its length.
+-- This is impossible since the lookup value is of `Fin n` where n is greater than
+-- the length of the list. Hence, no type can inhabit the below expression:
+--- lookupᵥ-check₄ : ((lookupᵥ (4 ∷ 5 ∷ 6 ∷ []) 3₄) ≡ 6) → ⊥
+--- lookupᵥ-check₄ ()
 ```
 
 ### Exercise 2.4. Implement a function which sets a value at a particular position in the `Vec` and returns the `Vec` with that changed and all other elements as before.
